@@ -8,6 +8,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <vector>
+
+// constantes para ser usado na execução do programa
+#define tamvet 50
+#define nbuckets 5
+#define nthreads 4
 
 //cria uma estrutura contendo 2 elementos do tipo inteiro
 //a estrutura representará um novo tipo de dados, chamado "parametros_thread_t"
@@ -16,6 +22,30 @@ typedef struct {
     int parametro1;
     int parametro2;
 } parametros_thread_t;
+
+//criando um tipo id
+//cada bucket criado terá um tipo id
+typedef struct {
+    int id;
+    int vetor[tamvet/nbuckets];
+} bucket;
+
+//método que cria um vetor desordenado de ordem Tam;
+void bubble_sort ( int *v, int tam) {
+	int i, j, temp , trocou ;
+	for (j = 0; j < tam - 1; j ++) {
+		trocou = 0;
+		for (i = 0; i < tam - 1; i ++) {
+			if(v[i + 1] < v[i]){
+                            temp = v[i];
+                            v[i] = v[i + 1];
+                            v[i + 1] = temp ;
+                            trocou = 1;
+			}
+		}
+		if (! trocou ) break ;
+	}
+}
 
 void* thread(void *param) {
     //transforma o de (void *) para (parametros_thread_t *)
@@ -46,6 +76,9 @@ int main(int argc, char **argv) {
     //o número de elementos do vetor será igual ao número de threads passado na linha de comando (n_threads)
     pthread_t *threads = (pthread_t *) malloc(sizeof(pthread_t) * n_threads);
 
+    //
+    bucket *id = (bucket *) malloc(sizeof(bucket) * nbuckets);
+    
     //aloca dinamicamente um vetor que armazenará os parametros passados para cada thread
     //o vetor terá tamanho n_threads
     //cada parâmetro será do tipo "parametros_thread_t", ou seja, conterá 2 elementos inteiros que serão passados a cada thread
