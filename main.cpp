@@ -62,7 +62,8 @@ void cria_bucktes(int *pVetorOriginal) {
 
     // aloca dinamicamente um vetor de tamanho "nbuckets"
     vetorBucket = (bucket *) malloc(sizeof (bucket) * nbuckets);
-    int j = 0;
+    int j = 0; // usado como iterador para os elementos de cada bucket
+               //e ao final de cada loopint terá o tamanho do vetor
     int valorMaior = 0; // variavel auxiliar que conterá o maior valor da faixa de cada bucket
     int valorMenor = 0; // variavel auxiliar que conterá o menor valor da faixa de cada bucket
 
@@ -75,43 +76,39 @@ void cria_bucktes(int *pVetorOriginal) {
         int quaBucketsSecundarios = nbuckets - (tamvet % nbuckets);  // pega o resto da divisão
         int faixaBucketsSecundarios = (tamvet / nbuckets);  // pega quantidade de valores que o bucket vai conter
 
+        // 
         for (int i = 0; i < quaBucketsPrimarios; ++i) {
+            //usa "i" como identificador de cada bucket
             vetorBucket[i].id = i;
-            // usar lock e unlock
             // Como MINIMO é -1 o primeiro vetor recebe valor minimo 0
             valorMenor = MINIMO + 1;
             // MINIMO recebe agora ele mesmo mais a faixa de números. Ex.: faixa = 10 então agora MINIMO = 9
             MINIMO = MINIMO + faixaBucketsPrimarios;
             // Como MINIMO = 9 valor maior do primeiro vetor recebe 9
             valorMaior = MINIMO;
-            //printf("\nBucket %d\n", vetorBucket[i].id);
             // Para atribuir os valores a cada posição do bucket
             for (int k = 0; k < tamvet; ++k) {
                 if ((pVetorOriginal[k] >= valorMenor) && (pVetorOriginal[k] <= valorMaior)) {
                     vetorBucket[i].elementosVetor[j] = pVetorOriginal[k];
-                    //printf("%d ", vetorBucket[i].elementosVetor[j]);
                     j++;
                 }
             }
             vetorBucket[i].tam = j;
             j = 0;
         }
-        int z = quaBucketsPrimarios;
+        
         for (int i = 0; i < quaBucketsSecundarios; ++i) {
             vetorBucket[quaBucketsPrimarios].id = quaBucketsPrimarios;
-            // usar lock e unlock
             // Como MINIMO é -1 o primeiro vetor recebe valor minimo 0
             valorMenor = MINIMO + 1;
             // MINIMO recebe agora ele mesmo mais a faixa de números. Ex.: faixa = 10 então agora MINIMO = 9
             MINIMO = MINIMO + faixaBucketsSecundarios;
             // Como MINIMO = 9 valor maior do primeiro vetor recebe 9
             valorMaior = MINIMO;
-            //printf("\nBucket %d\n", vetorBucket[i].id);
             // Para atribuir os valores a cada posição do bucket
             for (int k = 0; k < tamvet; ++k) {
                 if ((pVetorOriginal[k] >= valorMenor) && (pVetorOriginal[k] <= valorMaior)) {
                     vetorBucket[quaBucketsPrimarios].elementosVetor[j] = pVetorOriginal[k];
-                    //printf("%d ", vetorBucket[i].elementosVetor[j]);
                     j++;
                 }
             }
@@ -132,21 +129,17 @@ void cria_bucktes(int *pVetorOriginal) {
             MINIMO = MINIMO + faixaNumeroBuckets;
             // Como MINIMO = 9 valor maior do primeiro vetor recebe 9
             valorMaior = MINIMO;
-            //printf("\nBucket %d\n", vetorBucket[i].id);
             // Para atribuir os valores a cada posição do bucket
             for (int k = 0; k < tamvet; ++k) {
                 if ((pVetorOriginal[k] >= valorMenor) && (pVetorOriginal[k] <= valorMaior)) {
                     vetorBucket[i].elementosVetor[j] = pVetorOriginal[k];
-                    //printf("%d ", vetorBucket[i].elementosVetor[j]);
                     j++;
                 }
             }
             vetorBucket[i].tam = j;
             j = 0;
-            //printf("\n");	
         }
     }
-    //return vetorBucket;
 }
 
 void *thread_bucket() {
