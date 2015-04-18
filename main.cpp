@@ -19,16 +19,6 @@
 #define nbuckets 5  // quantidade de buckets para separar o vetor original
 #define nthreads 4  // quantidade de Threads para executar o programa
 
-// Variaveis globias usadas na execução do programa
-int MINIMO = -1;  // contem o menor valor da faixa do bucket
-int alternaBucket = 0;  // usado pela função "thread_bucket", para alternar entre os buckets
-int compBucket = 0;  // usado pela função "thread_bucket", para verificar o numero de buckets
-int valorMaior = 0;  // 
-int valorMenor = 0;
-double faixaNumeroBuckets = (tamvet / nbuckets);
-pthread_mutex_t mutex;
-bucket *vetorBucket;
-
 //cria uma estrutura contendo 2 elementos do tipo inteiro e um vetor de int
 //a estrutura representará um novo tipo de dados, chamado "bucket"
 //logo, será possível criar variáveis do tipo "bucket"
@@ -38,6 +28,14 @@ typedef struct {
     int tam;
     int elementosVetor[tamvet];
 } bucket;
+
+// Variaveis globias usadas na execução do programa
+int MINIMO = -1; // contem o menor valor da faixa do bucket
+int alternaBucket = 0; // usado pela função "thread_bucket", para alternar entre os buckets
+int compBucket = 0; // usado pela função "thread_bucket", para verificar o numero de buckets
+double faixaNumeroBuckets = (tamvet / nbuckets);
+pthread_mutex_t mutex;
+bucket *vetorBucket;
 
 //método que cria um vetor desordenado de ordem tam;
 
@@ -62,15 +60,20 @@ void bubble_sort(int *v, int tam) {
 
 void cria_bucktes(int *pVetorOriginal) {
 
+    // aloca dinamicamente um vetor de tamanho "nbuckets"
     vetorBucket = (bucket *) malloc(sizeof (bucket) * nbuckets);
     int j = 0;
+    int valorMaior = 0; // variavel auxiliar que conterá o maior valor da faixa de cada bucket
+    int valorMenor = 0; // variavel auxiliar que conterá o menor valor da faixa de cada bucket
+
+    // verifica se a divisão de buckets por quantidade de elementos é inteira
     if ((tamvet % nbuckets) != 0) {
 
-        int quaBucketsPrimarios = (tamvet % nbuckets);
-        int faixaBucketsPrimarios = (tamvet / nbuckets) + 1; // equivalente faixaNumeroBuckets
+        int quaBucketsPrimarios = (tamvet % nbuckets); // pega o resultado da divisão inteira
+        int faixaBucketsPrimarios = (tamvet / nbuckets) + 1; // pega quantidade de valores que o bucket vai conter
 
-        int quaBucketsSecundarios = nbuckets - (tamvet % nbuckets);
-        int faixaBucketsSecundarios = (tamvet / nbuckets);
+        int quaBucketsSecundarios = nbuckets - (tamvet % nbuckets);  // pega o resto da divisão
+        int faixaBucketsSecundarios = (tamvet / nbuckets);  // pega quantidade de valores que o bucket vai conter
 
         for (int i = 0; i < quaBucketsPrimarios; ++i) {
             vetorBucket[i].id = i;
