@@ -63,7 +63,7 @@ void cria_bucktes(int *pVetorOriginal) {
     // aloca dinamicamente um vetor de tamanho "nbuckets"
     vetorBucket = (bucket *) malloc(sizeof (bucket) * nbuckets);
     int j = 0; // usado como iterador para os elementos de cada bucket
-               //e ao final de cada loopint terá o tamanho do vetor
+    //e ao final de cada loopint terá o tamanho do vetor
     int valorMaior = 0; // variavel auxiliar que conterá o maior valor da faixa de cada bucket
     int valorMenor = 0; // variavel auxiliar que conterá o menor valor da faixa de cada bucket
 
@@ -75,8 +75,8 @@ void cria_bucktes(int *pVetorOriginal) {
         int faixaBucketsPrimarios = (tamvet / nbuckets) + 1; // pega quantidade de valores que o bucket vai conter
 
         // buckets que terão -1 em relação aos BucktesPrimarios
-        int quaBucketsSecundarios = nbuckets - (tamvet % nbuckets);  // pega o resto da divisão
-        int faixaBucketsSecundarios = (tamvet / nbuckets);  // pega quantidade de valores que o bucket vai conter
+        int quaBucketsSecundarios = nbuckets - (tamvet % nbuckets); // pega o resto da divisão
+        int faixaBucketsSecundarios = (tamvet / nbuckets); // pega quantidade de valores que o bucket vai conter
 
         // para preencher os bucktes+1
         for (int i = 0; i < quaBucketsPrimarios; ++i) {
@@ -96,10 +96,10 @@ void cria_bucktes(int *pVetorOriginal) {
                 }
             }
             // Zera j para poder começar a atribuir na posição inicial dos buckets seguintes.
-            vetorBucket[i].tam = j;// j contem a quantidade de valores no bucket atual
+            vetorBucket[i].tam = j; // j contem a quantidade de valores no bucket atual
             j = 0;
         }
-        
+
         // para preencher os bucktes-1
         for (int i = 0; i < quaBucketsSecundarios; ++i) {
             vetorBucket[quaBucketsPrimarios].id = quaBucketsPrimarios;
@@ -122,7 +122,7 @@ void cria_bucktes(int *pVetorOriginal) {
             j = 0;
         }
 
-    // caso for divisão inteira
+        // caso for divisão inteira
     } else {
         // Para alternar de buckets
         for (int i = 0; i < nbuckets; ++i) {
@@ -166,40 +166,64 @@ void *thread_bucket() {
     }
 }
 
-int main(int argc, char **argv) {
-    int i;
+int main() {
+    // imprime erro caso usuario seja burro!
+    if (nthreads < 1 && nbuckets > tamvet) {
+        printf("ERRO! Verifique o número de threads informado, bem como o tamanho do vetor e o número de buckets.");
+    } else if (nthreads < 1) {
+        printf("ERRO! Verifique o número de threads informado.");
+    } else if (nbuckets > tamvet) {
+        printf("ERRO! Verifique o número de buckets informado e o tamanho do vetor.");
+    } else { // caso não tiver erro
+        
+        int vetorOriginal[tamvet]; // define um vetor com o tamanho estipulado pelo usuario
+        int *pVetorOriginal = vetorOriginal; // guarda a primeira posição de memoria do vetor em um ponteiro
+        
+        int i; // interador usado nos for
+        
+        // Usando a função srand(), vamos alimentar a função rand() com uma semente, com um número, que é o tempo atual.
+        // Assim, os números gerados vão (podem) ser diferentes.
+        srand((unsigned) time(NULL));
 
-    //recupera o numero de threads passado na linha de comando: ex. ./programa 5
-    //os parâmetros passados na linha de comando são strings, logo é necessário converter
-    //para o tipo de dados desejado. Nesse caso o valor é inteiro, logo utiliza-se atoi()
-    int n_threads = atoi(argv[1]);
+        // cria vetor de numeros aleatorio
+        for (i = 0; i < tamvet; i++) {
+            // fazendo módulo com tamvet, garante-se que só será gerado números entre 0 e tamvet-1.
+            pVetorOriginal[i] = (rand() % (tamvet));
+            printf("%d ", pVetorOriginal[i]);
+        }
 
-    //cria o vetor do tipo pthread_t para armazenar o retorno de pthread_create() de cada thread
-    //o número de elementos do vetor será igual ao número de threads passado na linha de comando (n_threads)
-    pthread_t *threads = (pthread_t *) malloc(sizeof (pthread_t) * n_threads);
+        printf("\n");
+        cria_bucktes(pVetorOriginal); // separa o vetor original em buckets
+        printf("\n");
 
-    //
-    bucket *id = (bucket *) malloc(sizeof (bucket) * nbuckets);
+        pthread_mutex_init(&mutex, NULL); // inicializa mutex para tratar condição de corrida
+        pthread_t thread;
 
-    //aloca dinamicamente um vetor que armazenará os parametros passados para cada thread
-    //o vetor terá tamanho n_threads
-    //cada parâmetro será do tipo "parametros_thread_t", ou seja, conterá 2 elementos inteiros que serão passados a cada thread
-    parametros_thread_t *params = (parametros_thread_t *) malloc(sizeof (parametros_thread_t) * n_threads);
+        short unsigned int j = 0;
+        // criando as threads
+        // e já manda cada uma organizar os buckets
+        for (j = 0; j < nthreads; ++j) {
+            // Ultimo ( int *v, int tam) é o parametro que no caso é um vetor de buckets e o tamanho do vetor
+            pthread_create(&thread, NULL, thread_bucket, NULL);
+        }
+        // fazendo as threads esperarem até que todas "voltem" da execução
+        for (j = 0; j < nthreads; ++j) {
+            pthread_join(thread, NULL);
+        }
 
-    //preenche os parâmetros a serem passados a cada thread e cria as threads
-    for (i = 0; i < n_threads; i++) {
-        params[i].parametro1 = i;
-        params[i].parametro2 = i + 1;
-        pthread_create(&threads[i], NULL, thread, (void *) &params[i]);
+        printf("\n");
+        i = 0;
+        // imprime o vetor ordenado
+        while (i < tamvet) {
+            for (j = 0; j < nbuckets; j++) {
+                for (int k = 0; k < vetorBucket[j].tam; k++) {
+                    vetorOriginal[i] = vetorBucket[j].elementosVetor[k];
+                    printf("%d ", vetorOriginal[i]);
+                    i++;
+                }
+            }
+        }
+        // destroi o mutex
+        pthread_mutex_destroy(&mutex);
     }
-
-    //aguarda a finalização de todas as threads
-    for (i = 0; i < n_threads; i++)
-        pthread_join(threads[i], NULL);
-
-    //libera o espaço alocado para os vetores de threads e parâmetros
-    free(threads);
-    free(params);
-
-    return 0;
 }
