@@ -70,13 +70,15 @@ void cria_bucktes(int *pVetorOriginal) {
     // verifica se a divisão de buckets por quantidade de elementos é inteira
     if ((tamvet % nbuckets) != 0) {
 
+        // buckets que terão +1 em relação numero médio
         int quaBucketsPrimarios = (tamvet % nbuckets); // pega o resultado da divisão inteira
         int faixaBucketsPrimarios = (tamvet / nbuckets) + 1; // pega quantidade de valores que o bucket vai conter
 
+        // buckets que terão -1 em relação aos BucktesPrimarios
         int quaBucketsSecundarios = nbuckets - (tamvet % nbuckets);  // pega o resto da divisão
         int faixaBucketsSecundarios = (tamvet / nbuckets);  // pega quantidade de valores que o bucket vai conter
 
-        // 
+        // para preencher os bucktes+1
         for (int i = 0; i < quaBucketsPrimarios; ++i) {
             //usa "i" como identificador de cada bucket
             vetorBucket[i].id = i;
@@ -93,10 +95,12 @@ void cria_bucktes(int *pVetorOriginal) {
                     j++;
                 }
             }
-            vetorBucket[i].tam = j;
+            // Zera j para poder começar a atribuir na posição inicial dos buckets seguintes.
+            vetorBucket[i].tam = j;// j contem a quantidade de valores no bucket atual
             j = 0;
         }
         
+        // para preencher os bucktes-1
         for (int i = 0; i < quaBucketsSecundarios; ++i) {
             vetorBucket[quaBucketsPrimarios].id = quaBucketsPrimarios;
             // Como MINIMO é -1 o primeiro vetor recebe valor minimo 0
@@ -113,16 +117,16 @@ void cria_bucktes(int *pVetorOriginal) {
                 }
             }
             // Zera j para poder começar a atribuir na posição inicial dos buckets seguintes.
-            vetorBucket[quaBucketsPrimarios].tam = j;
+            vetorBucket[quaBucketsPrimarios].tam = j; // j contem a quantidade de valores no bucket atual
             quaBucketsPrimarios++;
             j = 0;
         }
 
+    // caso for divisão inteira
     } else {
         // Para alternar de buckets
         for (int i = 0; i < nbuckets; ++i) {
             vetorBucket[i].id = i;
-            // usar lock e unlock
             // Como MINIMO é -1 o primeiro vetor recebe valor minimo 0
             valorMenor = MINIMO + 1;
             // MINIMO recebe agora ele mesmo mais a faixa de números. Ex.: faixa = 10 então agora MINIMO = 9
@@ -136,15 +140,18 @@ void cria_bucktes(int *pVetorOriginal) {
                     j++;
                 }
             }
-            vetorBucket[i].tam = j;
+            // Zera j para poder começar a atribuir na posição inicial dos buckets seguintes.
+            vetorBucket[i].tam = j; // j contem a quantidade de valores no bucket atual
             j = 0;
         }
     }
 }
 
 void *thread_bucket() {
+    // enquanto todos os buckets não forem ordenados
     while (compBucket < nbuckets) {
-        pthread_mutex_lock(&mutex);
+        pthread_mutex_lock(&mutex); // tratando condição de corrida
+        // condição usada para mandar a thread para ou voltar pra lista de execução
         if (compBucket < nbuckets) {
             bubble_sort(vetorBucket[alternaBucket].elementosVetor, vetorBucket[alternaBucket].tam);
             pthread_t db = pthread_self();
